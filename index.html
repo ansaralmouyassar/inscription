@@ -262,7 +262,34 @@
     return false;
 }
     }
+// Vérification du verrou de 30 minutes au chargement de la page
+window.onload = function() {
+    const lockTime = localStorage.getItem('ansar_registration_lock');
+    if (lockTime) {
+        const now = new Date().getTime();
+        const timeLeft = lockTime - now;
 
+        if (timeLeft > 0) {
+            // Si le verrou est toujours actif, on cache le formulaire
+            displaySuccessMessage();
+        } else {
+            // Le temps est écoulé, on nettoie le verrou
+            localStorage.removeItem('ansar_registration_lock');
+        }
+    }
+};
+
+function displaySuccessMessage() {
+    document.querySelector('.form-wrapper').innerHTML = `
+        <div style="text-align: center; padding: 40px 20px; color: white;">
+            <i class="fas fa-check-circle" style="font-size: 60px; color: #ffd966; margin-bottom: 25px;"></i>
+            <h2 style="font-size: 1.6rem; margin-bottom: 20px; letter-spacing: 1px;">MERCI POUR VOTRE INSCRIPTION</h2>
+            <p style="font-size: 1rem; line-height: 1.6; color: rgba(255,255,255,0.8);">
+                VOUS POUVEZ VOUS CONNECTER DANS L'APPLICATION <br><strong>ANSAR</strong>. À BIENTÔT.
+            </p>
+        </div>
+    `;
+}
     function showToast(msg, duration = 3500) {
         const toast = document.getElementById('toastMsg');
         document.getElementById('toastText').innerText = msg;
@@ -353,10 +380,21 @@
                 showToast(`✅ Inscription réussie ! Code: ${newCode}`, 4000);
             }
             
+          // ... après l'ajout à la DB et l'envoi de l'email réussi ...
+
+// On définit l'heure actuelle + 30 minutes (30 * 60 * 1000 millisecondes)
+const expirationTime = new Date().getTime() + (30 * 60 * 1000);
+localStorage.setItem('ansar_registration_lock', expirationTime);
+
+// On affiche immédiatement le message de succès définitif
+displaySuccessMessage();
+
+// Optionnel : remonter en haut de page pour que l'utilisateur voit le message
+window.scrollTo({ top: 0, behavior: 'smooth' });
             document.getElementById('inscriptionForm').reset();
             return true;
         } catch(err) {
-            showToast("❌ Erreur lors de l'enregistrement", 4000);
+            showToast("enregistrement", 4000);
             return false;
         } finally {
             btn.disabled = false;
