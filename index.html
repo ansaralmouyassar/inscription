@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ANSAR ALMOUYASSAR - Inscription</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: linear-gradient(135deg, #0a2f2e 0%, #031a1a 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .glass-container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(12px);
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        .hero-header {
+            background: linear-gradient(135deg, #073332, #0a4b49);
+            padding: 35px 20px 30px;
+            text-align: center;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.4);
+        }
+        .logo-icon { font-size: 55px; color: #ffd966; margin-bottom: 12px; }
+        .hero-header h1 { color: white; font-size: 1.9rem; font-weight: 800; }
+        .hero-header p { color: rgba(255, 255, 255, 0.85); font-size: 0.85rem; margin-top: 10px; }
+        .form-wrapper { padding: 35px 32px; }
+        .form-group { margin-bottom: 20px; position: relative; }
+        .form-group i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #ffd966;
+            z-index: 1;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 14px 18px 14px 50px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            border-radius: 60px;
+            font-size: 0.95rem;
+            color: white;
+            outline: none;
+            transition: all 0.3s;
+        }
+        .form-group input:focus {
+            border-color: #ffd966;
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .form-group input::placeholder { color: rgba(255, 255, 255, 0.55); }
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(95deg, #ffd966, #e6b422);
+            border: none;
+            padding: 15px;
+            border-radius: 60px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #073332;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+        .info-text {
+            text-align: center;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.25s ease;
+        }
+        .modal-overlay.active { visibility: visible; opacity: 1; }
+        .modal-card {
+            background: #0a2f2e;
+            border-radius: 32px;
+            max-width: 450px;
+            width: 90%;
+            padding: 30px 25px;
+            border: 1px solid #ffd966;
+            text-align: center;
+            color: white;
+        }
+        .modal-card i { font-size: 50px; color: #ffd966; margin-bottom: 15px; }
+        .modal-card h3 { font-size: 1.6rem; margin-bottom: 12px; color: #ffd966; }
+        .code-highlight {
+            background: rgba(255, 217, 102, 0.15);
+            padding: 12px;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            border: 1px dashed #ffd966;
+            margin: 18px 0;
+        }
+        .modal-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+        .modal-btn { padding: 10px 20px; border-radius: 50px; border: none; cursor: pointer; font-weight: 600; }
+        .btn-connect { background: #ffd966; color: #073332; }
+        .btn-register-anyway { background: transparent; border: 2px solid #ffd966; color: #ffd966; }
+        .btn-close { background: rgba(255, 255, 255, 0.2); color: white; }
+        .toast-message {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f4a49;
+            padding: 12px 24px;
+            border-radius: 50px;
+            color: white;
+            z-index: 2100;
+            display: none;
+            border-left: 4px solid #ffd966;
+            white-space: nowrap;
+        }
+        @media (max-width: 550px) {
+            .form-wrapper { padding: 25px 20px; }
+            .hero-header h1 { font-size: 1.5rem; }
+            .toast-message { white-space: normal; text-align: center; max-width: 90%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="glass-container">
+    <div class="hero-header">
+        <div class="logo-container" style="margin-bottom: 15px;">
+    <div style="text-align: center; margin-bottom: 20px;">
+
+    <div style="display: inline-block; 
+
+                padding: 10px; 
+
+                background: rgba(255, 255, 255, 0.05); 
+
+                border: 1px solid rgba(255, 217, 102, 0.3); 
+
+                border-radius: 25px; 
+
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);">
+
+        
+
+        <img src="https://i.postimg.cc/SRvj9GX9/photo-5868297242425805082-x.jpg" alt="Logo ANSAR" 
+
+             style="max-width: 90px; 
+
+                    height: auto; 
+
+                    display: block; 
+
+                    border-radius: 18px;"> </div>
+
+</div>
+</div>
+        <h1>ANSAR ALMOUYASSAR</h1>
+        <p><i class="fas fa-hand-holding-heart"></i> Notre héritage, notre engagement</p>
+    </div>
+    <div class="form-wrapper">
+        <form id="inscriptionForm">
+            <div class="form-group"><i class="fas fa-user"></i><input type="text" id="prenom" placeholder="Prénom *" required></div>
+            <div class="form-group"><i class="fas fa-user-tag"></i><input type="text" id="nom" placeholder="Nom *" required></div>
+            <div class="form-group"><i class="fas fa-calendar-alt"></i><input type="text" id="dateNaissance" placeholder="Date de naissance (JJMMAAAA) *" required maxlength="8"></div>
+            <div class="form-group"><i class="fas fa-envelope"></i><input type="email" id="email" placeholder="Adresse email *" required></div>
+            <div class="form-group"><i class="fas fa-phone-alt"></i><input type="tel" id="telephone" placeholder="Téléphone"></div>
+            <div class="form-group"><i class="fas fa-map-marker-alt"></i><input type="text" id="adresse" placeholder="Adresse"></div>
+            <div class="form-group"><i class="fas fa-briefcase"></i><input type="text" id="activite" placeholder="Activité actuelle"></div>
+            <button type="submit" class="btn-submit" id="submitBtn"><i class="fas fa-user-plus"></i> S'inscrire</button>
+        </form>
+        <div class="info-text"><i class="fas fa-lock"></i> Prénom, Nom, Date de naissance (8 chiffres) et Email sont obligatoires</div>
+    </div>
+</div>
+
+<div id="similarModal" class="modal-overlay">
+    <div class="modal-card">
+        <i class="fas fa-users"></i>
+        <h3>Membre similaire trouvé</h3>
+        <p>Un membre avec des informations similaires existe déjà :</p>
+        <div id="similarDetails" class="code-highlight"></div>
+        <p><strong>Connectez-vous avec :</strong><br>
+        <span id="suggestedCode" style="font-size: 1.2rem; color:#ffd966;"></span> suivi de votre date de naissance</p>
+        <div class="modal-buttons">
+            <button class="modal-btn btn-connect" id="btnConnectSuggest">Se connecter</button>
+            <button class="modal-btn btn-register-anyway" id="btnRegisterAnyway">Enregistrer quand même</button>
+            <button class="modal-btn btn-close" id="btnCloseModal">Fermer</button>
+        </div>
+    </div>
+</div>
+
+<div id="toastMsg" class="toast-message"><span id="toastText"></span></div>
+
+<script>
+    // Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyA-TpblN0YnekG2tKFRhjOwwEd80qke5pk",
+        authDomain: "ansar-69617.firebaseapp.com",
+        projectId: "ansar-69617",
+        storageBucket: "ansar-69617.firebasestorage.app",
+        messagingSenderId: "1075104578958",
+        appId: "1:1075104578958:web:b5d55c76def4d1d430b8df"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    auth.signInAnonymously().catch(err => console.warn(err));
+
+    // EmailJS
+    emailjs.init("XhV4mALzpFqd22LZA");
+
+    async function sendWelcomeEmail(emailTo, prenom, nom, dateNaissance, memberCode) {
+        if (!emailTo || emailTo === "") return false;
+        if (!emailTo.includes("@")) return false;
+        
+        try {
+            const result = await emailjs.send("service_3c2cmlu", "template_45so7so", {
+                to_email: emailTo,
+                to_name: `${prenom} ${nom}`,
+                prenom: prenom,
+                nom: nom,
+                date_naissance: dateNaissance,
+                member_code: memberCode,
+                message_securite: "La protection de vos données personnelles est notre priorité absolue. Vos informations sont traitées avec la plus grande rigueur pour garantir leur sécurité. Pour toute assistance, mise à jour de vos informations ou demande particulière, nous vous invitons à contacter notre service de gestion au (+221) 78 309 02 78."
+            });
+            console.log("Email envoyé à", emailTo);
+            return true;
+       } catch(e) {
+    // Ceci affichera l'erreur précise d'EmailJS dans la console (F12)
+    console.error("Détails de l'erreur EmailJS:", e);
+    return false;
+}
+    }
+
+    function showToast(msg, duration = 3500) {
+        const toast = document.getElementById('toastMsg');
+        document.getElementById('toastText').innerText = msg;
+        toast.style.display = "block";
+        setTimeout(() => toast.style.display = "none", duration);
+    }
+
+    async function generateLogicalCode() {
+        const snapshot = await db.collection('members').get();
+        const codes = [];
+        snapshot.forEach(doc => {
+            const c = doc.data().code;
+            if(c && !isNaN(parseInt(c))) codes.push(parseInt(c));
+        });
+        if(codes.length === 0) return "001";
+        const maxCode = Math.max(...codes);
+        for(let i = 1; i <= maxCode; i++) {
+            if(!codes.includes(i)) return i.toString().padStart(3, '0');
+        }
+        return (maxCode + 1).toString().padStart(3, '0');
+    }
+
+    async function checkSimilarMember(prenom, nom, dateNaissance) {
+        const snapshot = await db.collection('members').get();
+        let bestMatch = null;
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            let score = 0;
+            if(data.prenom && data.prenom.toLowerCase() === prenom.toLowerCase()) score += 3;
+            if(data.nom && data.nom.toLowerCase() === nom.toLowerCase()) score += 3;
+            if(data.dateNaissance && data.dateNaissance === dateNaissance) score += 5;
+            if(score >= 4 && (!bestMatch || score > bestMatch.score)) {
+                bestMatch = { id: doc.id, ...data, score };
+            }
+        });
+        return bestMatch;
+    }
+
+    let pendingData = null;
+    let isLoading = false;
+
+    async function finalizeRegistration(memberData, force = false) {
+        if(isLoading) return false;
+        isLoading = true;
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Enregistrement...';
+
+        try {
+            if(!force) {
+                const similar = await checkSimilarMember(memberData.prenom, memberData.nom, memberData.dateNaissance);
+                if(similar) {
+                    pendingData = memberData;
+                    pendingData.similarCode = similar.code;
+                    document.getElementById('similarDetails').innerHTML = `<strong>${similar.prenom} ${similar.nom}</strong><br>📅 ${similar.dateNaissance}<br>🔑 Code: ${similar.code}`;
+                    document.getElementById('suggestedCode').innerText = similar.code;
+                    document.getElementById('similarModal').classList.add('active');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-user-plus"></i> S\'inscrire';
+                    isLoading = false;
+                    return false;
+                }
+            }
+            
+            const newCode = await generateLogicalCode();
+            const toSave = {
+                prenom: memberData.prenom,
+                nom: memberData.nom,
+                dateNaissance: memberData.dateNaissance,
+                email: memberData.email,
+                telephone: memberData.telephone || null,
+                adresse: memberData.adresse || null,
+                activite: memberData.activite || null,
+                code: newCode,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            await db.collection('members').add(toSave);
+            
+            const emailOk = await sendWelcomeEmail(
+                memberData.email, memberData.prenom, 
+                memberData.nom, memberData.dateNaissance, newCode
+            );
+            
+            if(emailOk) {
+                showToast(`✅ Inscription réussie ! Code: ${newCode} - Email envoyé`, 4000);
+            } else {
+                showToast(`✅ Inscription réussie ! Code: ${newCode}`, 4000);
+            }
+            
+            document.getElementById('inscriptionForm').reset();
+            return true;
+        } catch(err) {
+            showToast("❌ Erreur lors de l'enregistrement", 4000);
+            return false;
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-user-plus"></i> S\'inscrire';
+            isLoading = false;
+        }
+    }
+
+    document.getElementById('inscriptionForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const prenom = document.getElementById('prenom').value.trim();
+        const nom = document.getElementById('nom').value.trim();
+        const dateNaissance = document.getElementById('dateNaissance').value.trim();
+        const email = document.getElementById('email').value.trim();
+        
+        if(!prenom || !nom) { showToast("Prénom et Nom requis", 3000); return; }
+        if(!/^\d{8}$/.test(dateNaissance)) { showToast("Date: 8 chiffres (JJMMAAAA)", 3000); return; }
+        if(!email || !email.includes('@')) { showToast("Email valide requis", 3000); return; }
+        
+        await finalizeRegistration({
+            prenom, nom, dateNaissance, email,
+            telephone: document.getElementById('telephone').value.trim(),
+            adresse: document.getElementById('adresse').value.trim(),
+            activite: document.getElementById('activite').value.trim()
+        }, false);
+    });
+    
+    document.getElementById('btnConnectSuggest').onclick = () => {
+        if(pendingData) alert(`Code: ${pendingData.similarCode}`);
+        document.getElementById('similarModal').classList.remove('active');
+        pendingData = null;
+    };
+    
+    document.getElementById('btnRegisterAnyway').onclick = async () => {
+        if(pendingData) {
+            const data = {...pendingData};
+            delete data.similarCode;
+            document.getElementById('similarModal').classList.remove('active');
+            pendingData = null;
+            await finalizeRegistration(data, true);
+        }
+    };
+    
+    document.getElementById('btnCloseModal').onclick = () => {
+        document.getElementById('similarModal').classList.remove('active');
+        pendingData = null;
+    };
+    
+    document.getElementById('dateNaissance').addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '').slice(0, 8);
+    });
+    
+    console.log("Système prêt");
+</script>
+</body>
+</html>
