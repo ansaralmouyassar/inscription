@@ -158,46 +158,26 @@
 <div class="glass-container">
     <div class="hero-header">
         <div class="logo-container" style="margin-bottom: 15px;">
-    <div style="text-align: center; margin-bottom: 20px;">
-
-    <div style="display: inline-block; 
-
-                padding: 10px; 
-
-                background: rgba(255, 255, 255, 0.05); 
-
-                border: 1px solid rgba(255, 217, 102, 0.3); 
-
-                border-radius: 25px; 
-
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);">
-
-        
-
-        <img src="https://i.postimg.cc/SRvj9GX9/photo-5868297242425805082-x.jpg" alt="Logo ANSAR" 
-
-             style="max-width: 90px; 
-
-                    height: auto; 
-
-                    display: block; 
-
-                    border-radius: 18px;"> </div>
-
-</div>
-</div>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="display: inline-block; padding: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 217, 102, 0.3); border-radius: 25px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);">
+                    <img src="https://i.postimg.cc/SRvj9GX9/photo-5868297242425805082-x.jpg" alt="Logo ANSAR" style="max-width: 90px; height: auto; display: block; border-radius: 18px;">
+                </div>
+            </div>
+        </div>
         <h1>ANSAR ALMOUYASSAR</h1>
         <p><i class="fas fa-hand-holding-heart"></i> Notre héritage, notre engagement</p>
     </div>
     <div class="form-wrapper">
         <form id="inscriptionForm">
-            <div class="form-group"><i class="fas fa-user"></i><input type="text" id="prenom" placeholder="Prénom *" required></div>
-            <div class="form-group"><i class="fas fa-user-tag"></i><input type="text" id="nom" placeholder="Nom *" required></div>
-            <div class="form-group"><i class="fas fa-calendar-alt"></i><input type="text" id="dateNaissance" placeholder="Date de naissance (JJMMAAAA) *" required maxlength="8"></div>
+            <div class="form-group"><i class="fas fa-user"></i><input type="text" id="firstname" placeholder="Prénom *" required></div>
+            <div class="form-group"><i class="fas fa-user-tag"></i><input type="text" id="lastname" placeholder="Nom *" required></div>
+            <div class="form-group"><i class="fas fa-calendar-alt"></i><input type="text" id="dob" placeholder="Date de naissance (JJMMAAAA) *" required maxlength="8"></div>
             <div class="form-group"><i class="fas fa-envelope"></i><input type="email" id="email" placeholder="Adresse email *" required></div>
-            <div class="form-group"><i class="fas fa-phone-alt"></i><input type="tel" id="telephone" placeholder="Téléphone"></div>
-            <div class="form-group"><i class="fas fa-map-marker-alt"></i><input type="text" id="adresse" placeholder="Adresse"></div>
-            <div class="form-group"><i class="fas fa-briefcase"></i><input type="text" id="activite" placeholder="Activité actuelle"></div>
+            <div class="form-group"><i class="fas fa-phone-alt"></i><input type="tel" id="phone" placeholder="Téléphone"></div>
+            <div class="form-group"><i class="fas fa-map-marker-alt"></i><input type="text" id="address" placeholder="Adresse"></div>
+            <div class="form-group"><i class="fas fa-briefcase"></i><input type="text" id="activity" placeholder="Activité actuelle"></div>
+            <div class="form-group"><i class="fas fa-map-pin"></i><input type="text" id="birthplace" placeholder="Lieu de naissance"></div>
+            <div class="form-group"><i class="fas fa-id-card"></i><input type="text" id="residence" placeholder="Numéro CIN"></div>
             <button type="submit" class="btn-submit" id="submitBtn"><i class="fas fa-user-plus"></i> S'inscrire</button>
         </form>
         <div class="info-text"><i class="fas fa-lock"></i> Prénom, Nom, Date de naissance (8 chiffres) et Email sont obligatoires</div>
@@ -240,56 +220,60 @@
     // EmailJS
     emailjs.init("XhV4mALzpFqd22LZA");
 
-    async function sendWelcomeEmail(emailTo, prenom, nom, dateNaissance, memberCode) {
+    async function sendWelcomeEmail(emailTo, firstname, lastname, dob, memberCode, activity, birthplace, residence, phone, address) {
         if (!emailTo || emailTo === "") return false;
         if (!emailTo.includes("@")) return false;
         
         try {
             const result = await emailjs.send("service_3c2cmlu", "template_45so7so", {
                 to_email: emailTo,
-                to_name: `${prenom} ${nom}`,
-                prenom: prenom,
-                nom: nom,
-                date_naissance: dateNaissance,
+                to_name: `${firstname} ${lastname}`,
+                prenom: firstname,
+                nom: lastname,
+                date_naissance: dob,
                 member_code: memberCode,
+                activite: activity || "Non précisée",
+                lieu_naissance: birthplace || "Non précisé",
+                cin: residence || "Non précisé",
+                telephone: phone || "Non précisé",
+                adresse: address || "Non précisée",
                 message_securite: "La protection de vos données personnelles est notre priorité absolue. Vos informations sont traitées avec la plus grande rigueur pour garantir leur sécurité. Pour toute assistance, mise à jour de vos informations ou demande particulière, nous vous invitons à contacter notre service de gestion au (+221) 78 309 02 78."
             });
             console.log("Email envoyé à", emailTo);
             return true;
-       } catch(e) {
-    // Ceci affichera l'erreur précise d'EmailJS dans la console (F12)
-    console.error("Détails de l'erreur EmailJS:", e);
-    return false;
-}
-    }
-// Vérification du verrou de 30 minutes au chargement de la page
-window.onload = function() {
-    const lockTime = localStorage.getItem('ansar_registration_lock');
-    if (lockTime) {
-        const now = new Date().getTime();
-        const timeLeft = lockTime - now;
-
-        if (timeLeft > 0) {
-            // Si le verrou est toujours actif, on cache le formulaire
-            displaySuccessMessage();
-        } else {
-            // Le temps est écoulé, on nettoie le verrou
-            localStorage.removeItem('ansar_registration_lock');
+        } catch(e) {
+            console.error("Erreur EmailJS:", e);
+            return false;
         }
     }
-};
 
-function displaySuccessMessage() {
-    document.querySelector('.form-wrapper').innerHTML = `
-        <div style="text-align: center; padding: 40px 20px; color: white;">
-            <i class="fas fa-check-circle" style="font-size: 60px; color: #ffd966; margin-bottom: 25px;"></i>
-            <h2 style="font-size: 1.6rem; margin-bottom: 20px; letter-spacing: 1px;">MERCI POUR VOTRE INSCRIPTION</h2>
-            <p style="font-size: 1rem; line-height: 1.6; color: rgba(255,255,255,0.8);">
-                VOUS POUVEZ VOUS CONNECTER DANS L'APPLICATION <br><strong>ANSAR</strong>. À BIENTÔT.
-            </p>
-        </div>
-    `;
-}
+    function initializeContributions() {
+        const currentYear = new Date().getFullYear();
+        return {
+            Mensuelle: {
+                [currentYear - 2]: Array(12).fill(false),
+                [currentYear - 1]: Array(12).fill(false),
+                [currentYear]: Array(12).fill(false)
+            },
+            globalContributions: {}
+        };
+    }
+
+    function calculateAge(dob) {
+        if (!dob || dob.length !== 8) return null;
+        const day = parseInt(dob.substring(0, 2));
+        const month = parseInt(dob.substring(2, 4));
+        const year = parseInt(dob.substring(4, 8));
+        const birthDate = new Date(year, month - 1, day);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return age;
+    }
+
     function showToast(msg, duration = 3500) {
         const toast = document.getElementById('toastMsg');
         document.getElementById('toastText').innerText = msg;
@@ -312,15 +296,15 @@ function displaySuccessMessage() {
         return (maxCode + 1).toString().padStart(3, '0');
     }
 
-    async function checkSimilarMember(prenom, nom, dateNaissance) {
+    async function checkSimilarMember(firstname, lastname, dob) {
         const snapshot = await db.collection('members').get();
         let bestMatch = null;
         snapshot.forEach(doc => {
             const data = doc.data();
             let score = 0;
-            if(data.prenom && data.prenom.toLowerCase() === prenom.toLowerCase()) score += 3;
-            if(data.nom && data.nom.toLowerCase() === nom.toLowerCase()) score += 3;
-            if(data.dateNaissance && data.dateNaissance === dateNaissance) score += 5;
+            if(data.firstname && data.firstname.toLowerCase() === firstname.toLowerCase()) score += 3;
+            if(data.lastname && data.lastname.toLowerCase() === lastname.toLowerCase()) score += 3;
+            if(data.dob && data.dob === dob) score += 5;
             if(score >= 4 && (!bestMatch || score > bestMatch.score)) {
                 bestMatch = { id: doc.id, ...data, score };
             }
@@ -340,11 +324,11 @@ function displaySuccessMessage() {
 
         try {
             if(!force) {
-                const similar = await checkSimilarMember(memberData.prenom, memberData.nom, memberData.dateNaissance);
+                const similar = await checkSimilarMember(memberData.firstname, memberData.lastname, memberData.dob);
                 if(similar) {
                     pendingData = memberData;
                     pendingData.similarCode = similar.code;
-                    document.getElementById('similarDetails').innerHTML = `<strong>${similar.prenom} ${similar.nom}</strong><br>📅 ${similar.dateNaissance}<br>🔑 Code: ${similar.code}`;
+                    document.getElementById('similarDetails').innerHTML = `<strong>${similar.firstname} ${similar.lastname}</strong><br>📅 ${similar.dob}<br>🔑 Code: ${similar.code}`;
                     document.getElementById('suggestedCode').innerText = similar.code;
                     document.getElementById('similarModal').classList.add('active');
                     btn.disabled = false;
@@ -355,23 +339,33 @@ function displaySuccessMessage() {
             }
             
             const newCode = await generateLogicalCode();
+            const age = calculateAge(memberData.dob);
+            const contributions = initializeContributions();
+            
             const toSave = {
-                prenom: memberData.prenom,
-                nom: memberData.nom,
-                dateNaissance: memberData.dateNaissance,
+                firstname: memberData.firstname,
+                lastname: memberData.lastname,
+                dob: memberData.dob,
                 email: memberData.email,
-                telephone: memberData.telephone || null,
-                adresse: memberData.adresse || null,
-                activite: memberData.activite || null,
+                phone: memberData.phone || null,
+                address: memberData.address || null,
+                activity: memberData.activity || null,
+                birthplace: memberData.birthplace || null,
+                residence: memberData.residence || null,
+                age: age,
                 code: newCode,
+                role: "membre",
+                status: "actif",
+                contributions: contributions,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             
             await db.collection('members').add(toSave);
             
             const emailOk = await sendWelcomeEmail(
-                memberData.email, memberData.prenom, 
-                memberData.nom, memberData.dateNaissance, newCode
+                memberData.email, memberData.firstname, memberData.lastname, 
+                memberData.dob, newCode, memberData.activity, memberData.birthplace, 
+                memberData.residence, memberData.phone, memberData.address
             );
             
             if(emailOk) {
@@ -380,21 +374,17 @@ function displaySuccessMessage() {
                 showToast(`✅ Inscription réussie ! Code: ${newCode}`, 4000);
             }
             
-          // ... après l'ajout à la DB et l'envoi de l'email réussi ...
-
-// On définit l'heure actuelle + 30 minutes (30 * 60 * 1000 millisecondes)
-const expirationTime = new Date().getTime() + (30 * 60 * 1000);
-localStorage.setItem('ansar_registration_lock', expirationTime);
-
-// On affiche immédiatement le message de succès définitif
-displaySuccessMessage();
-
-// Optionnel : remonter en haut de page pour que l'utilisateur voit le message
-window.scrollTo({ top: 0, behavior: 'smooth' });
+            const expirationTime = new Date().getTime() + (30 * 60 * 1000);
+            localStorage.setItem('ansar_registration_lock', expirationTime);
+            
+            displaySuccessMessage();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
             document.getElementById('inscriptionForm').reset();
             return true;
         } catch(err) {
-            showToast("enregistrement", 4000);
+            console.error("Erreur:", err);
+            showToast("❌ Erreur lors de l'enregistrement", 4000);
             return false;
         } finally {
             btn.disabled = false;
@@ -403,27 +393,57 @@ window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }
 
+    function displaySuccessMessage() {
+        document.querySelector('.form-wrapper').innerHTML = `
+            <div style="text-align: center; padding: 40px 20px; color: white;">
+                <i class="fas fa-check-circle" style="font-size: 60px; color: #ffd966; margin-bottom: 25px;"></i>
+                <h2 style="font-size: 1.6rem; margin-bottom: 20px; letter-spacing: 1px;">MERCI POUR VOTRE INSCRIPTION</h2>
+                <p style="font-size: 1rem; line-height: 1.6; color: rgba(255,255,255,0.8);">
+                    VOUS POUVEZ VOUS CONNECTER DANS L'APPLICATION <br><strong>ANSAR</strong>. À BIENTÔT.
+                </p>
+            </div>
+        `;
+    }
+
+    window.onload = function() {
+        const lockTime = localStorage.getItem('ansar_registration_lock');
+        if (lockTime) {
+            const now = new Date().getTime();
+            const timeLeft = lockTime - now;
+            if (timeLeft > 0) {
+                displaySuccessMessage();
+            } else {
+                localStorage.removeItem('ansar_registration_lock');
+            }
+        }
+    };
+
     document.getElementById('inscriptionForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const prenom = document.getElementById('prenom').value.trim();
-        const nom = document.getElementById('nom').value.trim();
-        const dateNaissance = document.getElementById('dateNaissance').value.trim();
+        const firstname = document.getElementById('firstname').value.trim();
+        const lastname = document.getElementById('lastname').value.trim();
+        const dob = document.getElementById('dob').value.trim();
         const email = document.getElementById('email').value.trim();
         
-        if(!prenom || !nom) { showToast("Prénom et Nom requis", 3000); return; }
-        if(!/^\d{8}$/.test(dateNaissance)) { showToast("Date: 8 chiffres (JJMMAAAA)", 3000); return; }
+        if(!firstname || !lastname) { showToast("Prénom et Nom requis", 3000); return; }
+        if(!/^\d{8}$/.test(dob)) { showToast("Date: 8 chiffres (JJMMAAAA)", 3000); return; }
         if(!email || !email.includes('@')) { showToast("Email valide requis", 3000); return; }
         
         await finalizeRegistration({
-            prenom, nom, dateNaissance, email,
-            telephone: document.getElementById('telephone').value.trim(),
-            adresse: document.getElementById('adresse').value.trim(),
-            activite: document.getElementById('activite').value.trim()
+            firstname: firstname,
+            lastname: lastname,
+            dob: dob,
+            email: email,
+            phone: document.getElementById('phone').value.trim(),
+            address: document.getElementById('address').value.trim(),
+            activity: document.getElementById('activity').value.trim(),
+            birthplace: document.getElementById('birthplace').value.trim(),
+            residence: document.getElementById('residence').value.trim()
         }, false);
     });
     
     document.getElementById('btnConnectSuggest').onclick = () => {
-        if(pendingData) alert(`Code: ${pendingData.similarCode}`);
+        if(pendingData) alert(`🔐 Connexion avec le code: ${pendingData.similarCode}`);
         document.getElementById('similarModal').classList.remove('active');
         pendingData = null;
     };
@@ -443,11 +463,11 @@ window.scrollTo({ top: 0, behavior: 'smooth' });
         pendingData = null;
     };
     
-    document.getElementById('dateNaissance').addEventListener('input', function(e) {
+    document.getElementById('dob').addEventListener('input', function(e) {
         this.value = this.value.replace(/[^0-9]/g, '').slice(0, 8);
     });
     
-    console.log("Système prêt");
+    console.log("✅ Système prêt - Compatible avec l'ancienne base Firebase");
 </script>
 </body>
-</html>
+</html> 
