@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ANSAR ALMOUYASSAR - Inscription</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: linear-gradient(135deg, #0a2f2e 0%, #031a1a 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .glass-container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(12px);
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        .hero-header {
+            background: linear-gradient(135deg, #073332, #0a4b49);
+            padding: 35px 20px 30px;
+            text-align: center;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.4);
+        }
+        .logo-icon { font-size: 55px; color: #ffd966; margin-bottom: 12px; }
+        .hero-header h1 { color: white; font-size: 1.9rem; font-weight: 800; }
+        .hero-header p { color: rgba(255, 255, 255, 0.85); font-size: 0.85rem; margin-top: 10px; }
+        .form-wrapper { padding: 35px 32px; }
+        .form-group { margin-bottom: 20px; position: relative; }
+        .form-group i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #ffd966;
+            z-index: 1;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 14px 18px 14px 50px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            border-radius: 60px;
+            font-size: 0.95rem;
+            color: white;
+            outline: none;
+            transition: all 0.3s;
+        }
+        .form-group input:focus {
+            border-color: #ffd966;
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .form-group input::placeholder { color: rgba(255, 255, 255, 0.55); }
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(95deg, #ffd966, #e6b422);
+            border: none;
+            padding: 15px;
+            border-radius: 60px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #073332;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+        .info-text {
+            text-align: center;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.25s ease;
+        }
+        .modal-overlay.active { visibility: visible; opacity: 1; }
+        .modal-card {
+            background: #0a2f2e;
+            border-radius: 32px;
+            max-width: 450px;
+            width: 90%;
+            padding: 30px 25px;
+            border: 1px solid #ffd966;
+            text-align: center;
+            color: white;
+        }
+        .modal-card i { font-size: 50px; color: #ffd966; margin-bottom: 15px; }
+        .modal-card h3 { font-size: 1.6rem; margin-bottom: 12px; color: #ffd966; }
+        .code-highlight {
+            background: rgba(255, 217, 102, 0.15);
+            padding: 12px;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            border: 1px dashed #ffd966;
+            margin: 18px 0;
+        }
+        .modal-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+        .modal-btn { padding: 10px 20px; border-radius: 50px; border: none; cursor: pointer; font-weight: 600; }
+        .btn-connect { background: #ffd966; color: #073332; }
+        .btn-register-anyway { background: transparent; border: 2px solid #ffd966; color: #ffd966; }
+        .btn-close { background: rgba(255, 255, 255, 0.2); color: white; }
+        .toast-message {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f4a49;
+            padding: 12px 24px;
+            border-radius: 50px;
+            color: white;
+            z-index: 2100;
+            display: none;
+            border-left: 4px solid #ffd966;
+            white-space: nowrap;
+        }
+        @media (max-width: 550px) {
+            .form-wrapper { padding: 25px 20px; }
+            .hero-header h1 { font-size: 1.5rem; }
+            .toast-message { white-space: normal; text-align: center; max-width: 90%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="glass-container">
+    <div class="hero-header">
+        <div class="logo-container" style="margin-bottom: 15px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="display: inline-block; padding: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 217, 102, 0.3); border-radius: 25px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);">
+                    <img src="https://i.postimg.cc/SRvj9GX9/photo-5868297242425805082-x.jpg" alt="Logo ANSAR" style="max-width: 90px; height: auto; display: block; border-radius: 18px;">
+                </div>
+            </div>
+        </div>
+        <h1>ANSAR ALMOUYASSAR</h1>
+        <p><i class="fas fa-hand-holding-heart"></i> Notre héritage, notre engagement</p>
+    </div>
+    <div class="form-wrapper">
+        <form id="inscriptionForm">
+            <div class="form-group"><i class="fas fa-user"></i><input type="text" id="firstname" placeholder="Prénom *" required></div>
+            <div class="form-group"><i class="fas fa-user-tag"></i><input type="text" id="lastname" placeholder="Nom *" required></div>
+            <div class="form-group"><i class="fas fa-calendar-alt"></i><input type="text" id="dob" placeholder="Date de naissance (JJMMAAAA) *" required maxlength="8"></div>
+            <div class="form-group"><i class="fas fa-envelope"></i><input type="email" id="email" placeholder="Adresse email *" required></div>
+            <div class="form-group"><i class="fas fa-phone-alt"></i><input type="tel" id="phone" placeholder="Téléphone"></div>
+            <div class="form-group"><i class="fas fa-map-marker-alt"></i><input type="text" id="address" placeholder="Adresse"></div>
+            <div class="form-group"><i class="fas fa-briefcase"></i><input type="text" id="activity" placeholder="Activité actuelle"></div>
+            <div class="form-group"><i class="fas fa-map-pin"></i><input type="text" id="birthplace" placeholder="Lieu de naissance"></div>
+            <div class="form-group"><i class="fas fa-id-card"></i><input type="text" id="residence" placeholder="Numéro CIN"></div>
+            <button type="submit" class="btn-submit" id="submitBtn"><i class="fas fa-user-plus"></i> S'inscrire</button>
+        </form>
+        <div class="info-text"><i class="fas fa-lock"></i> Prénom, Nom, Date de naissance (8 chiffres) et Email sont obligatoires</div>
+    </div>
+</div>
+
+<div id="similarModal" class="modal-overlay">
+    <div class="modal-card">
+        <i class="fas fa-users"></i>
+        <h3>Membre similaire trouvé</h3>
+        <p>Un membre avec des informations similaires existe déjà :</p>
+        <div id="similarDetails" class="code-highlight"></div>
+        <p><strong>Connectez-vous avec :</strong><br>
+        <span id="suggestedCode" style="font-size: 1.2rem; color:#ffd966;"></span> suivi de votre date de naissance</p>
+        <div class="modal-buttons">
+            <button class="modal-btn btn-connect" id="btnConnectSuggest">Se connecter</button>
+            <button class="modal-btn btn-register-anyway" id="btnRegisterAnyway">Enregistrer quand même</button>
+            <button class="modal-btn btn-close" id="btnCloseModal">Fermer</button>
+        </div>
+    </div>
+</div>
+
+<div id="toastMsg" class="toast-message"><span id="toastText"></span></div>
+
+<script>
+    // ==================== FIREBASE CONFIGURATION ====================
+    const firebaseConfig = {
+        apiKey: "AIzaSyA-TpblN0YnekG2tKFRhjOwwEd80qke5pk",
+        authDomain: "ansar-69617.firebaseapp.com",
+        projectId: "ansar-69617",
+        storageBucket: "ansar-69617.firebasestorage.app",
+        messagingSenderId: "1075104578958",
+        appId: "1:1075104578958:web:b5d55c76def4d1d430b8df"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    auth.signInAnonymously().catch(err => console.warn(err));
+
+    // ==================== BREVO CONFIGURATION (TESTÉ ET FONCTIONNEL) ====================
+    const BREVO_API_KEY = "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";
+    const SENDER_EMAIL = "ansarmouyassar@gmail.com";
+    const SENDER_NAME = "ANSAR ALMOUYASSAR";
+
+    // Fonction d'envoi d'email avec Brevo (la même que celle du test qui fonctionne)
+ async function sendEmailWithBrevo(recipientEmail, recipientName, memberCode, memberData) {
+    if (!recipientEmail || !recipientEmail.includes("@")) return false;
+    
+    // Construction du contenu HTML - Design Neo-Premium Adaptatif
+    const emailHtml = `
+        <!DOCTYPE html>
+        <html lang="fr">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+                :root {
+                    color-scheme: light dark;
+                    supported-color-schemes: light dark;
+                }
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body {
+                    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                    line-height: 1.6;
+                    background-color: #f4f7f9;
+                    color: #2d3436;
+                    padding: 20px 10px;
+                }
+                .wrapper {
+                    max-width: 600px;
+                    margin: 0 auto;
+                    background: #ffffff;
+                    border-radius: 16px;
+                    overflow: hidden;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+                }
+                .header {
+                    background: #0d2a28; /* Couleur identité Ansar */
+                    padding: 30px;
+                    text-align: center;
+                    color: #ffd966;
+                }
+                .logo {
+                    width: 70px;
+                    height: 70px;
+                    border-radius: 12px;
+                    margin-bottom: 15px;
+                    border: 2px solid #ffd966;
+                }
+                .content {
+                    padding: 30px 25px;
+                }
+                h1 { font-size: 22px; font-weight: 700; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+                h2 { font-size: 18px; color: #0d2a28; margin-bottom: 15px; }
+                
+                .id-box {
+                    background: linear-gradient(135deg, #ffd966 0%, #f1c40f 100%);
+                    padding: 20px;
+                    border-radius: 12px;
+                    text-align: center;
+                    margin: 20px 0;
+                }
+                .id-label { font-size: 11px; font-weight: 800; color: #0d2a28; opacity: 0.8; letter-spacing: 2px; }
+                .id-value { font-size: 32px; font-weight: 900; color: #0d2a28; font-family: 'Courier New', monospace; }
+
+                .grid {
+                    display: table;
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 20px;
+                }
+                .grid-item {
+                    display: inline-block;
+                    width: 48%;
+                    padding: 10px 1%;
+                    vertical-align: top;
+                }
+                .label { font-size: 11px; color: #636e72; text-transform: uppercase; font-weight: 700; }
+                .value { font-size: 14px; color: #2d3436; font-weight: 600; }
+
+                .action-buttons { text-align: center; margin: 30px 0; }
+                .btn {
+                    display: inline-block;
+                    padding: 12px 25px;
+                    margin: 5px;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-weight: 700;
+                    font-size: 14px;
+                    transition: all 0.3s;
+                }
+                .btn-web { background: #0d2a28; color: #ffd966; }
+                .btn-store { background: #ffd966; color: #0d2a28; }
+
+                .footer {
+                    padding: 20px;
+                    background: #fbfbfb;
+                    text-align: center;
+                    font-size: 11px;
+                    color: #b2bec3;
+                    border-top: 1px solid #eee;
+                }
+
+                /* DARK MODE AUTOMATIQUE */
+                @media (prefers-color-scheme: dark) {
+                    body { background-color: #0a0a0a !important; }
+                    .wrapper { background-color: #1a1a1a !important; box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important; }
+                    h2, .value { color: #ffffff !important; }
+                    .label { color: #a0a0a0 !important; }
+                    .footer { background: #151515 !important; border-top: 1px solid #333 !important; }
+                    .btn-web { background: #ffd966 !important; color: #0d2a28 !important; }
+                }
+
+                @media (max-width: 480px) {
+                    .grid-item { width: 100%; display: block; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="wrapper">
+                <div class="header">
+                    <img src="https://i.postimg.cc/W1gZ7ZmC/photo-5868297242425805082-x.jpg" alt="Logo" class="logo">
+                    <h1>ANSAR ALMOUYASSAR</h1>
+                    <p style="font-size:12px; opacity:0.9;">Institut Coranique Al Mouyassar</p>
+                </div>
+
+                <div class="content">
+                    <h2>Salam, ${recipientName} ✨</h2>
+                    <p style="font-size: 14px; color: #636e72;">Votre inscription a été validée avec succès. Voici vos accès officiels :</p>
+
+                    <div class="id-box">
+                        <div class="id-label">IDENTIFIANT UNIQUE</div>
+                        <div class="id-value">${memberCode}</div>
+                    </div>
+
+                    <div class="grid">
+                        <div class="grid-item">
+                            <div class="label">👤 Prénom & Nom</div>
+                            <div class="value">${memberData.firstname} ${memberData.lastname}</div>
+                        </div>
+                        <div class="grid-item">
+                            <div class="label">📅 Date de Naissance</div>
+                            <div class="value">${memberData.dob}</div>
+                        </div>
+                        <div class="grid-item">
+                            <div class="label">📱 Téléphone</div>
+                            <div class="value">${memberData.phone || 'Non renseigné'}</div>
+                        </div>
+                        <div class="grid-item">
+                            <div class="label">📍 Localisation</div>
+                            <div class="value">${memberData.address || 'Dakar'}</div>
+                        </div>
+                    </div>
+
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #0d2a28;">
+                        <p style="font-size: 13px; font-weight: 700;">🔐 Comment se connecter ?</p>
+                        <p style="font-size: 12px; color: #636e72;">Utilisez votre code <b>${memberCode}</b> suivi de votre date de naissance (8 chiffres).</p>
+                    </div>
+
+                    <div class="action-buttons">
+                        <a href="https://ahmedaidara.github.io/ansar1.0/#" class="btn btn-web">Accéder au Portail</a>
+                        <a href="https://play.google.com/store/apps/details?id=com.ansar.almouyyassar.app" class="btn btn-store">Télécharger l'App</a>
+                    </div>
+                </div>
+
+                <div class="footer">
+                    <p>📞 Support : +221 78 309 02 78</p>
+                    <p>© 2026 ANSAR ALMOUYASSAR — Tous droits réservés</p>
+                    <p>Développé par Ahmed Said Aidara</p>
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+
+    try {
+        const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'api-key': BREVO_API_KEY
+            },
+            body: JSON.stringify({
+                sender: { name: SENDER_NAME, email: SENDER_EMAIL },
+                to: [{ email: recipientEmail, name: recipientName }],
+                subject: `✨ Code Membre : ${memberCode}`,
+                htmlContent: emailHtml
+            })
+        });
+        return response.ok;
+    } catch(e) {
+        console.error("Erreur Envoi:", e);
+        return false;
+    }
+}
+    
+    // Fonction utilitaire pour échapper les caractères HTML (sécurité) 
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    // ==================== FONCTIONS DE GESTION ==================== 
+    function initializeContributions() {
+        const currentYear = new Date().getFullYear();
+        return {
+            Mensuelle: {
+                [currentYear - 2]: Array(12).fill(false),
+                [currentYear - 1]: Array(12).fill(false),
+                [currentYear]: Array(12).fill(false)
+            },
+            globalContributions: {}
+        };
+    }
+
+    function calculateAge(dob) {
+        if (!dob || dob.length !== 8) return null;
+        const day = parseInt(dob.substring(0, 2));
+        const month = parseInt(dob.substring(2, 4));
+        const year = parseInt(dob.substring(4, 8));
+        const birthDate = new Date(year, month - 1, day);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return age;
+    }
+
+    function showToast(msg, duration = 4000) {
+        const toast = document.getElementById('toastMsg');
+        document.getElementById('toastText').innerText = msg;
+        toast.style.display = "block";
+        setTimeout(() => toast.style.display = "none", duration);
+    }
+
+    async function generateLogicalCode() {
+        const snapshot = await db.collection('members').get();
+        const codes = [];
+        snapshot.forEach(doc => {
+            const c = doc.data().code;
+            if(c && !isNaN(parseInt(c))) codes.push(parseInt(c));
+        });
+        if(codes.length === 0) return "001";
+        const maxCode = Math.max(...codes);
+        for(let i = 1; i <= maxCode; i++) {
+            if(!codes.includes(i)) return i.toString().padStart(3, '0');
+        }
+        return (maxCode + 1).toString().padStart(3, '0');
+    }
+
+    async function checkSimilarMember(firstname, lastname, dob) {
+        const snapshot = await db.collection('members').get();
+        let bestMatch = null;
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            let score = 0;
+            if(data.firstname && data.firstname.toLowerCase() === firstname.toLowerCase()) score += 3;
+            if(data.lastname && data.lastname.toLowerCase() === lastname.toLowerCase()) score += 3;
+            if(data.dob && data.dob === dob) score += 5;
+            if(score >= 4 && (!bestMatch || score > bestMatch.score)) {
+                bestMatch = { id: doc.id, ...data, score };
+            }
+        });
+        return bestMatch;
+    }
+
+    let pendingData = null;
+    let isLoading = false;
+
+    async function finalizeRegistration(memberData, force = false) {
+        if(isLoading) return false;
+        isLoading = true;
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Enregistrement...';
+
+        try {
+            if(!force) {
+                const similar = await checkSimilarMember(memberData.firstname, memberData.lastname, memberData.dob);
+                if(similar) {
+                    pendingData = memberData;
+                    pendingData.similarCode = similar.code;
+                    document.getElementById('similarDetails').innerHTML = `<strong>${similar.firstname} ${similar.lastname}</strong><br>📅 ${similar.dob}<br>🔑 Code: ${similar.code}`;
+                    document.getElementById('suggestedCode').innerText = similar.code;
+                    document.getElementById('similarModal').classList.add('active');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-user-plus"></i> S\'inscrire';
+                    isLoading = false;
+                    return false;
+                }
+            }
+            
+            const newCode = await generateLogicalCode();
+            const age = calculateAge(memberData.dob);
+            const contributions = initializeContributions();
+            
+            const toSave = {
+                firstname: memberData.firstname,
+                lastname: memberData.lastname,
+                dob: memberData.dob,
+                email: memberData.email,
+                phone: memberData.phone || null,
+                address: memberData.address || null,
+                activity: memberData.activity || null,
+                birthplace: memberData.birthplace || null,
+                residence: memberData.residence || null,
+                age: age,
+                code: newCode,
+                role: "membre",
+                status: "actif",
+                contributions: contributions,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            await db.collection('members').add(toSave);
+            
+            // Envoi de l'email avec Brevo (la même méthode qui a marché dans le test)
+            const emailOk = await sendEmailWithBrevo(
+                memberData.email, 
+                `${memberData.firstname} ${memberData.lastname}`, 
+                newCode, 
+                memberData
+            );
+            
+            if(emailOk) {
+                showToast(`✅ Inscription réussie ! Code: ${newCode} - Email envoyé`, 5000);
+            } else {
+                showToast(`✅ Inscription réussie ! Code: ${newCode} (Email non envoyé - vérifiez votre configuration)`, 5000);
+            }
+            
+            const expirationTime = new Date().getTime() + (30 * 60 * 1000);
+            localStorage.setItem('ansar_registration_lock', expirationTime);
+            
+            displaySuccessMessage();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            document.getElementById('inscriptionForm').reset();
+            return true;
+        } catch(err) {
+            console.error("Erreur:", err);
+            showToast(" enregistrement", 4000);
+            return false;
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-user-plus"></i> S\'inscrire';
+            isLoading = false;
+        }
+    }
+
+    function displaySuccessMessage() {
+        document.querySelector('.form-wrapper').innerHTML = `
+            <div style="text-align: center; padding: 40px 20px; color: white;">
+                <i class="fas fa-check-circle" style="font-size: 60px; color: #ffd966; margin-bottom: 25px;"></i>
+                <h2 style="font-size: 1.6rem; margin-bottom: 20px; letter-spacing: 1px;">MERCI POUR VOTRE INSCRIPTION</h2>
+                <p style="font-size: 1rem; line-height: 1.6; color: rgba(255,255,255,0.8);">
+                    VOUS POUVEZ VOUS CONNECTER DANS L'APPLICATION <br><strong>ANSAR</strong>. À BIENTÔT.
+                </p>
+            </div>
+        `;
+    }
+
+    // ==================== INITIALISATION ====================
+    window.onload = function() {
+        const lockTime = localStorage.getItem('ansar_registration_lock');
+        if (lockTime) {
+            const now = new Date().getTime();
+            const timeLeft = lockTime - now;
+            if (timeLeft > 0) {
+                displaySuccessMessage();
+            } else {
+                localStorage.removeItem('ansar_registration_lock');
+            }
+        }
+    };
+
+    document.getElementById('inscriptionForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const firstname = document.getElementById('firstname').value.trim();
+        const lastname = document.getElementById('lastname').value.trim();
+        const dob = document.getElementById('dob').value.trim();
+        const email = document.getElementById('email').value.trim();
+        
+        if(!firstname || !lastname) { showToast("❌ Prénom et Nom requis", 3000); return; }
+        if(!/^\d{8}$/.test(dob)) { showToast("❌ Date: 8 chiffres (JJMMAAAA)", 3000); return; }
+        if(!email || !email.includes('@')) { showToast("❌ Email valide requis", 3000); return; }
+        
+        await finalizeRegistration({
+            firstname: firstname,
+            lastname: lastname,
+            dob: dob,
+            email: email,
+            phone: document.getElementById('phone').value.trim(),
+            address: document.getElementById('address').value.trim(),
+            activity: document.getElementById('activity').value.trim(),
+            birthplace: document.getElementById('birthplace').value.trim(),
+            residence: document.getElementById('residence').value.trim()
+        }, false);
+    });
+    
+    document.getElementById('btnConnectSuggest').onclick = () => {
+        if(pendingData) alert(`🔐 Connexion avec le code: ${pendingData.similarCode}`);
+        document.getElementById('similarModal').classList.remove('active');
+        pendingData = null;
+    };
+    
+    document.getElementById('btnRegisterAnyway').onclick = async () => {
+        if(pendingData) {
+            const data = {...pendingData};
+            delete data.similarCode;
+            document.getElementById('similarModal').classList.remove('active');
+            pendingData = null;
+            await finalizeRegistration(data, true);
+        }
+    };
+    
+    document.getElementById('btnCloseModal').onclick = () => {
+        document.getElementById('similarModal').classList.remove('active');
+        pendingData = null;
+    };
+    
+    document.getElementById('dob').addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '').slice(0, 8);
+    });
+    
+    console.log("✅ Système prêt - Brevo configuré et fonctionnel !");
+    console.log(`📧 Email expéditeur: ${SENDER_EMAIL}`);
+  
+      // ==================== BOUTON RESET SIMPLE ====================
+    let resetTimer = null;
+    let resetSeconds = 0;
+
+    function addResetButton() {
+        // Ajouter le bouton reset dans la page
+        const formWrapper = document.querySelector('.form-wrapper');
+        if (formWrapper && !document.querySelector('.reset-btn-simple')) {
+            const resetHtml = `
+                <div style="text-align: center; margin-top: 20px;">
+                    <button id="resetTestBtn" style="
+                        background: rgba(255,255,255,0.05);
+                        border: 1px solid rgba(255,217,102,0.3);
+                        padding: 8px 20px;
+                        border-radius: 50px;
+                        font-size: 0.8rem;
+                        color: rgba(255,255,255,0.6);
+                        cursor: pointer;
+                        transition: all 0.2s;
+                    " onmouseover="this.style.background='rgba(255,217,102,0.15)'; this.style.borderColor='#ffd966'; this.style.color='#ffd966'" 
+                       onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.borderColor='rgba(255,217,102,0.3)'; this.style.color='rgba(255,255,255,0.6)'">
+                        <i class="fas fa-sync-alt"></i> Réinitialiser le test
+                        <span id="resetCountdown" style="display:none; margin-left:8px; background:#ffd966; color:#073332; padding:2px 8px; border-radius:20px; font-size:0.7rem;"></span>
+                    </button>
+                </div>
+            `;
+            formWrapper.insertAdjacentHTML('beforeend', resetHtml);
+            
+            // Ajouter l'événement au bouton
+            document.getElementById('resetTestBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                startResetCountdown();
+            });
+        }
+    }
+
+    function startResetCountdown() {
+        const btn = document.getElementById('resetTestBtn');
+        const countdownSpan = document.getElementById('resetCountdown');
+        
+        if (resetTimer) return; // Déjà en cours
+        
+        resetSeconds = 3;
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        countdownSpan.style.display = 'inline-block';
+        countdownSpan.textContent = `${resetSeconds}s`;
+        
+        resetTimer = setInterval(() => {
+            resetSeconds--;
+            countdownSpan.textContent = `${resetSeconds}s`;
+            
+            if (resetSeconds <= 0) { 
+                clearInterval(resetTimer);
+                resetTimer = null;
+                
+                // RÉINITIALISATION
+                localStorage.removeItem('ansar_registration_lock');
+                
+                // Recharger la page proprement
+                location.reload();
+            }
+        }, 1000);
+    }
+
+    // Appeler au chargement
+    setTimeout(addResetButton, 100);
+</script>
+</body>
+</html>
