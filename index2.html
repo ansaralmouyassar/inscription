@@ -159,8 +159,7 @@
         <div class="logo-container" style="margin-bottom: 15px;">
             <div style="text-align: center; margin-bottom: 20px;">
                 <div style="display: inline-block; padding: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 217, 102, 0.3); border-radius: 25px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);">
-                    <img src="https://i.postimg.cc/SRvj9GX9/photo-5868297242425805082-x.jpg" alt="Logo ANSAR" style="max-width: 90px; height: auto; display: block; border-radius: 18px;">
-                </div>
+                    <img src="logo.jpg" alt="Logo ANSAR" style="max-width: 90px; height: auto; display: block; border-radius: 18px;">                </div>
             </div>
         </div>
         <h1>ANSAR ALMOUYASSAR</h1>
@@ -217,10 +216,15 @@
     auth.signInAnonymously().catch(err => console.warn(err));
 
     // ==================== BREVO CONFIGURATION (TESTÉ ET FONCTIONNEL) ====================
-    const BREVO_API_KEY = " ";
-    const SENDER_EMAIL = "ansarmouyassar@gmail.com";
-    const SENDER_NAME = "ANSAR ALMOUYASSAR";
+// ==================== BREVO CONFIGURATION ====================
+let BREVO_API_KEY = null;
+fetch('config.js')
+    .then(r => r.json())
+    .then(c => { BREVO_API_KEY = c.cle; })
+    .catch(e => console.log("Fichier config non trouvé"));
 
+const SENDER_EMAIL = "ansarmouyassar@gmail.com";
+const SENDER_NAME = "ANSAR ALMOUYASSAR";
     // Fonction d'envoi d'email avec Brevo (la même que celle du test qui fonctionne)
  async function sendEmailWithBrevo(recipientEmail, recipientName, memberCode, memberData) {
     if (!recipientEmail || !recipientEmail.includes("@")) return false;
