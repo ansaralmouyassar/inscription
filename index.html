@@ -393,17 +393,50 @@
         }
     }
 
-    function displaySuccessMessage() {
-        document.querySelector('.form-wrapper').innerHTML = `
-            <div style="text-align: center; padding: 40px 20px; color: white;">
-                <i class="fas fa-check-circle" style="font-size: 60px; color: #ffd966; margin-bottom: 25px;"></i>
-                <h2 style="font-size: 1.6rem; margin-bottom: 20px; letter-spacing: 1px;">MERCI POUR VOTRE INSCRIPTION</h2>
-                <p style="font-size: 1rem; line-height: 1.6; color: rgba(255,255,255,0.8);">
-                    VOUS POUVEZ VOUS CONNECTER DANS L'APPLICATION <br><strong>ANSAR</strong>. À BIENTÔT.
+  function displaySuccessMessage() {
+    document.querySelector('.form-wrapper').innerHTML = `
+        <div style="text-align: center; padding: 40px 20px; color: white; font-family: sans-serif;">
+            <i class="fas fa-check-circle" style="font-size: 60px; color: #ffd966; margin-bottom: 25px;"></i>
+            
+            <h2 style="font-size: 1.6rem; margin-bottom: 20px; letter-spacing: 1px; text-transform: uppercase;">
+                Merci pour votre inscription
+            </h2>
+
+            <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; margin-bottom: 30px;">
+                <p style="font-size: 1rem; margin-bottom: 15px;">
+                    Un message de confirmation vous sera envoyé dans l'email indiqué.<br>
+                    <span style="color: #ffd966; font-size: 0.9rem;">(Pensez à vérifier vos courriers indésirables / spams)</span>
                 </p>
+                <a href="https://mail.google.com/" target="_blank" 
+                   style="display: inline-block; padding: 10px 20px; background-color: #ffffff; color: #333; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 0.9rem;">
+                   <i class="fas fa-envelope" style="margin-right: 8px;"></i>OUVRIR GMAIL / EMAIL
+                </a>
             </div>
-        `;
-    }
+
+            <p style="font-size: 1rem; line-height: 1.6; color: rgba(255,255,255,0.9); margin-bottom: 25px;">
+                Vous pouvez maintenant accéder à l'univers <strong>ANSAR</strong> :
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 15px; align-items: center;">
+                <a href="https://play.google.com/store/apps/details?id=com.ansar.almouyyassar.app&pcampaignid=web_share" 
+                   target="_blank" 
+                   style="width: 250px; padding: 12px; background-color: #ffd966; color: #000; text-decoration: none; border-radius: 50px; font-weight: bold; transition: 0.3s;">
+                    TÉLÉCHARGER L'APPLICATION
+                </a>
+
+                <a href="https://ahmedaidara.github.io/ansar1.0/#" 
+                   target="_blank" 
+                   style="color: rgba(255,255,255,0.8); text-decoration: underline; font-size: 0.9rem;">
+                    Ou accéder au site web ici
+                </a>
+            </div>
+
+            <p style="margin-top: 30px; font-style: italic; font-size: 0.8rem; color: rgba(255,255,255,0.5);">
+                À bientôt parmi nous.
+            </p>
+        </div>
+    `;
+}
 
     window.onload = function() {
         const lockTime = localStorage.getItem('ansar_registration_lock');
