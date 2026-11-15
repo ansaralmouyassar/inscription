@@ -357,10 +357,23 @@ body{
               <div class="choice"><input type="radio" name="hasResponsibility" id="respNo" value="non" required><label for="respNo"><i class="fas fa-times"></i> Non</label></div>
             </div>
           </div>
-          <div class="form-group full" id="respDetailsGroup" style="display:none">
-            <label for="responsibilityDetails">Précisez votre responsabilité</label>
-            <div class="input-wrap"><i class="fas fa-briefcase"></i>
-              <input type="text" id="responsibilityDetails" placeholder="Ex: Responsable communication">
+                   <div class="form-group full" id="respDetailsGroup" style="display:none">
+            <label for="responsibilityDetails">Quel poste occupez-vous ?</label>
+            <div class="input-wrap"><i class="fas fa-user-tie"></i>
+              <select id="responsibilityDetails">
+                <option value="">— Choisir un poste —</option>
+                <option value="Membre Simple">Membre Simple</option>
+                <option value="Secrétaire">Secrétaire</option>
+                <option value="Vice-Secrétaire">Vice-Secrétaire</option>
+                <option value="Trésorier">Trésorier</option>
+                <option value="Président">Président</option>
+                <option value="Vice Présidence">Vice Présidence</option>
+                <option value="Chargé de communication et relation extérieur">Chargé de communication et relation extérieur</option>
+                <option value="Chargé des relations intérieures">Chargé des relations intérieures</option>
+                <option value="Chargé de la gestion ANSAR-KAMINE">Chargé de la gestion ANSAR-KAMINE</option>
+                <option value="Chargé d'événementiel">Chargé d'événementiel</option>
+                <option value="Chargé d'étude et prospective">Chargé d'étude et prospective</option>
+              </select>
             </div>
           </div>
           <div class="form-group full">
@@ -771,8 +784,8 @@ async function finalizeRegistration(memberData, force = false) {
       birthplace: memberData.birthplace || null,
       residence: memberData.residence || null,
       age: age,
-      code: newCode,
-      role: "membre",
+           code: newCode,
+      role: memberData.role || "Membre Simple",
       status: "actif",
       contributions: contributions,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -876,6 +889,9 @@ document.getElementById('inscriptionForm').addEventListener('submit', async (e) 
   const isHafizEl = document.querySelector('input[name="isHafiz"]:checked');
   const hasRespEl = document.querySelector('input[name="hasResponsibility"]:checked');
   const isWorkingEl = document.querySelector('input[name="isWorking"]:checked');
+    const roleValue = (hasRespEl && hasRespEl.value === 'oui')
+    ? (document.getElementById('responsibilityDetails').value || 'Membre Simple')
+    : 'Membre Simple';
 
   await finalizeRegistration({
     firstname, lastname, dob, email, phone, country, address,
@@ -886,7 +902,8 @@ document.getElementById('inscriptionForm').addEventListener('submit', async (e) 
     hafizYear: document.getElementById('hafizYear').value.trim(),
     ansarJoinDate,
     hasResponsibility: hasRespEl ? hasRespEl.value : 'non',
-    responsibilityDetails: document.getElementById('responsibilityDetails').value.trim(),
+        responsibilityDetails: document.getElementById('responsibilityDetails').value.trim(),
+    role: roleValue,
     availability: document.getElementById('availability').value,
     educationLevel: document.getElementById('educationLevel').value,
     isWorking: isWorkingEl ? isWorkingEl.value : 'non',
