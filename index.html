@@ -273,15 +273,27 @@ body{
               <input type="email" id="email" placeholder="votre.email@gmail/icloud.com">
             </div>
           </div>
-          <div class="form-group full">
+                    <div class="form-group full">
             <label>Date de naissance *</label>
             <div class="date-selects">
               <select id="dobDay" required><option value="">Jour</option></select>
               <select id="dobMonth" required><option value="">Mois</option></select>
               <select id="dobYear" required><option value="">Année</option></select>
             </div>
-            <div class="date-hint" id="dobHint"><i class="fas fa-info-circle"></i> Date de naissance ecacte svp JJMMAAAA</div>
+            <div class="date-hint" id="dobHint"><i class="fas fa-info-circle"></i> Format enregistré : JJMMAAAA (8 chiffres)</div>
             <input type="hidden" id="dob" required>
+          </div>
+          <div class="form-group">
+            <label for="birthplace">Lieu de naissance</label>
+            <div class="input-wrap"><i class="fas fa-map-pin"></i>
+              <input type="text" id="birthplace" placeholder="Ville de naissance">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="residence">Numéro CIN</label>
+            <div class="input-wrap"><i class="fas fa-id-card"></i>
+              <input type="text" id="residence" placeholder="Numéro carte d'identité">
+            </div>
           </div>
         </div>
       </div>
@@ -755,9 +767,9 @@ async function finalizeRegistration(memberData, force = false) {
       email: memberData.email || null,
       phone: memberData.phone || null,
       address: memberData.address || null,
-      activity: memberData.profession || null,   // conservé (compat)
-      birthplace: null,
-      residence: null,
+           activity: memberData.profession || null,   // conservé (compat)
+      birthplace: memberData.birthplace || null,
+      residence: memberData.residence || null,
       age: age,
       code: newCode,
       role: "membre",
@@ -858,6 +870,8 @@ document.getElementById('inscriptionForm').addEventListener('submit', async (e) 
 
   const entryDate = buildDate8('entryDay','entryMonth','entryYear','entryDate');
   const ansarJoinDate = buildDate8('ansarDay','ansarMonth','ansarYear','ansarJoinDate');
+    const birthplace = document.getElementById('birthplace').value.trim();
+  const residence  = document.getElementById('residence').value.trim();
 
   const isHafizEl = document.querySelector('input[name="isHafiz"]:checked');
   const hasRespEl = document.querySelector('input[name="hasResponsibility"]:checked');
@@ -865,6 +879,7 @@ document.getElementById('inscriptionForm').addEventListener('submit', async (e) 
 
   await finalizeRegistration({
     firstname, lastname, dob, email, phone, country, address,
+    birthplace, residence,
     entryDate,
     yearsAtInstitute: document.getElementById('yearsAtInstitute').value.trim(),
     isHafiz: isHafizEl ? isHafizEl.value : 'non',
