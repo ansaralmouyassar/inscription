@@ -1,1 +1,634 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>ANSAR ALMOUYASSAR — Registre des membres</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<style>
+:root{
+  --emerald-900:#052e2b; --emerald-800:#073b37; --emerald-700:#0a4b46; --emerald-600:#0e5f58;
+  --gold-500:#d4af37; --gold-400:#e6c25a; --gold-300:#f0d888; --gold-200:#f7e9b8;
+  --ink-100:#f5f7f6; --ink-300:#c9d4d2; --ink-500:#8fa3a0;
+  --radius-lg:24px; --radius-md:14px; --radius-sm:10px;
+  --shadow-soft:0 20px 60px rgba(0,0,0,.35);
+  --shadow-gold:0 12px 30px rgba(212,175,55,.25);
+  --transition:.28s cubic-bezier(.4,0,.2,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  background:
+    radial-gradient(1200px 600px at 10% -10%,rgba(14,95,88,.55),transparent 60%),
+    radial-gradient(900px 500px at 100% 0%,rgba(212,175,55,.10),transparent 55%),
+    linear-gradient(160deg,#04211f 0%,#031614 55%,#020d0c 100%);
+  min-height:100vh;padding:30px 16px;color:var(--ink-100);
+  -webkit-font-smoothing:antialiased;
+}
+.glass-container{
+  width:100%;max-width:1280px;margin:0 auto;
+  background:linear-gradient(180deg,rgba(10,60,56,.55) 0%,rgba(5,30,28,.75) 100%);
+  backdrop-filter:blur(24px) saturate(140%);
+  -webkit-backdrop-filter:blur(24px) saturate(140%);
+  border-radius:var(--radius-lg);
+  border:1px solid rgba(212,175,55,.18);
+  box-shadow:var(--shadow-soft),inset 0 1px 0 rgba(255,255,255,.06);
+  overflow:hidden;position:relative;
+}
+.glass-container::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold-400),transparent);opacity:.8;
+}
+/* HEADER */
+.hero-header{padding:34px 28px 24px;text-align:center;position:relative;
+  background:radial-gradient(600px 200px at 50% 0%,rgba(212,175,55,.08),transparent 70%);
+  border-bottom:1px solid rgba(212,175,55,.14);}
+.logo-container{margin-bottom:12px}
+.logo-frame{display:inline-flex;padding:9px;
+  background:linear-gradient(145deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
+  border:1px solid rgba(212,175,55,.35);border-radius:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.08);}
+.logo-frame img{max-width:60px;height:auto;display:block;border-radius:9px}
+.hero-header h1{font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:700;
+  letter-spacing:.03em;color:#fff;line-height:1.15}
+.brand-rule{width:46px;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold-400),transparent);
+  margin:12px auto 10px;border-radius:2px}
+.hero-header p{color:var(--ink-300);font-size:.76rem;font-weight:400;
+  letter-spacing:.06em;text-transform:uppercase}
+.hero-header p i{color:var(--gold-400);margin-right:6px}
+/* TOOLBAR */
+.toolbar{padding:24px 28px 6px;display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.search-box{flex:1;min-width:220px;position:relative}
+.search-box i{position:absolute;left:16px;top:50%;transform:translateY(-50%);
+  color:var(--gold-400);font-size:.9rem;pointer-events:none}
+.search-box input{width:100%;padding:13px 16px 13px 44px;
+  background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);
+  border-radius:var(--radius-md);font-family:inherit;font-size:.9rem;color:#fff;outline:none;
+  transition:all var(--transition)}
+.search-box input:focus{border-color:var(--gold-400);background:rgba(255,255,255,.07);
+  box-shadow:0 0 0 4px rgba(212,175,55,.12)}
+.search-box input::placeholder{color:rgba(201,212,210,.45);font-weight:300}
+.filter-select{min-width:180px}
+.filter-select select{width:100%;padding:13px 16px;background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.09);border-radius:var(--radius-md);
+  font-family:inherit;font-size:.88rem;color:#fff;outline:none;appearance:none;cursor:pointer;
+  transition:all var(--transition)}
+.filter-select select:focus{border-color:var(--gold-400);background:rgba(255,255,255,.07);
+  box-shadow:0 0 0 4px rgba(212,175,55,.12)}
+.filter-select select option{background:#073b37;color:#fff}
+.stats-bar{padding:16px 28px 0;display:flex;gap:18px;flex-wrap:wrap;font-size:.78rem;color:var(--ink-500)}
+.stats-bar span{display:inline-flex;align-items:center;gap:6px}
+.stats-bar strong{color:var(--gold-400);font-weight:700}
+.stats-bar i{color:var(--gold-400);font-size:.75rem}
+/* TABLE */
+.table-wrap{padding:18px 28px 28px;overflow-x:auto}
+table{width:100%;border-collapse:separate;border-spacing:0 8px;font-size:.85rem}
+thead th{font-size:.66rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--gold-400);padding:10px 12px;text-align:left;border-bottom:1px solid rgba(212,175,55,.2);
+  white-space:nowrap;position:sticky;top:0}
+tbody tr{background:rgba(255,255,255,.03);transition:all var(--transition);cursor:pointer}
+tbody tr:hover{background:rgba(212,175,55,.08);transform:scale(1.002)}
+tbody td{padding:14px 12px;color:var(--ink-300);vertical-align:middle;border-top:1px solid rgba(255,255,255,.04)}
+tbody td:first-child{border-radius:var(--radius-md) 0 0 var(--radius-md);
+  color:var(--gold-400);font-weight:700;font-family:'Playfair Display',serif;font-size:.92rem}
+tbody td:last-child{border-radius:0 var(--radius-md) var(--radius-md) 0;text-align:right}
+.member-name{color:#fff;font-weight:600}
+.member-name small{display:block;font-size:.7rem;color:var(--ink-500);font-weight:400;margin-top:3px}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:.68rem;font-weight:600;
+  letter-spacing:.03em;white-space:nowrap}
+.badge-active{background:rgba(46,204,113,.12);color:#6fe0a0;border:1px solid rgba(46,204,113,.3)}
+.badge-inactive{background:rgba(255,99,99,.12);color:#ff9e9e;border:1px solid rgba(255,99,99,.3)}
+.badge-role{background:rgba(212,175,55,.12);color:var(--gold-300);border:1px solid rgba(212,175,55,.3)}
+.badge-hafiz{background:rgba(147,112,219,.14);color:#c8b0f5;border:1px solid rgba(147,112,219,.35)}
+.view-icon{color:var(--gold-400);font-size:.95rem;transition:transform var(--transition)}
+tbody tr:hover .view-icon{transform:translateX(4px)}
+.empty-state{text-align:center;padding:60px 20px;color:var(--ink-500)}
+.empty-state i{font-size:50px;color:var(--gold-400);margin-bottom:16px;opacity:.5}
+.empty-state p{font-size:.92rem}
+/* LOADING */
+.loader{padding:80px 20px;text-align:center;color:var(--gold-400)}
+.loader i{font-size:38px;animation:spin 1s linear infinite;margin-bottom:16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* MODAL FICHE MEMBRE */
+.modal-overlay{position:fixed;inset:0;background:rgba(2,13,12,.85);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  display:flex;align-items:center;justify-content:center;z-index:2000;
+  visibility:hidden;opacity:0;transition:all .3s ease;padding:20px;overflow-y:auto}
+.modal-overlay.active{visibility:visible;opacity:1}
+.detail-card{background:linear-gradient(180deg,#0a3633 0%,#062422 100%);
+  border-radius:var(--radius-lg);max-width:640px;width:100%;
+  border:1px solid rgba(212,175,55,.3);color:var(--ink-100);
+  box-shadow:0 30px 80px rgba(0,0,0,.6);transform:translateY(10px);
+  transition:transform .35s ease;margin:auto;position:relative;overflow:hidden}
+.modal-overlay.active .detail-card{transform:translateY(0)}
+.detail-header{padding:28px 28px 22px;text-align:center;position:relative;
+  background:radial-gradient(400px 150px at 50% 0%,rgba(212,175,55,.12),transparent 70%);
+  border-bottom:1px solid rgba(212,175,55,.18)}
+.detail-avatar{width:76px;height:76px;border-radius:50%;margin:0 auto 14px;
+  background:linear-gradient(135deg,var(--gold-300),var(--gold-500));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:var(--emerald-900);
+  box-shadow:0 8px 24px rgba(212,175,55,.35),inset 0 2px 4px rgba(255,255,255,.3)}
+.detail-header h2{font-family:'Playfair Display',serif;font-size:1.4rem;color:#fff;margin-bottom:4px}
+.detail-header .code-pill{display:inline-block;padding:4px 14px;border-radius:20px;
+  background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.35);
+  color:var(--gold-400);font-size:.78rem;font-weight:700;letter-spacing:.05em;margin-top:8px}
+.detail-close{position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:50%;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  color:var(--ink-300);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all var(--transition)}
+.detail-close:hover{background:rgba(255,255,255,.15);color:#fff;transform:rotate(90deg)}
+.detail-body{padding:24px 28px 28px;max-height:60vh;overflow-y:auto}
+.section{margin-bottom:22px}
+.section-title{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--gold-400);margin-bottom:12px;padding-bottom:8px;
+  border-bottom:1px solid rgba(212,175,55,.15);display:flex;align-items:center;gap:8px}
+.section-title i{font-size:.8rem}
+.field{display:flex;justify-content:space-between;gap:14px;padding:8px 0;
+  border-bottom:1px dashed rgba(255,255,255,.05);font-size:.85rem;line-height:1.5}
+.field:last-child{border-bottom:none}
+.field-label{color:var(--ink-500);flex-shrink:0;font-weight:500;min-width:130px}
+.field-value{color:#fff;text-align:right;word-break:break-word;font-weight:500}
+.field-value.empty{color:var(--ink-500);font-style:italic;font-weight:400}
+.field-value a{color:var(--gold-400);text-decoration:none;border-bottom:1px dotted var(--gold-400)}
+.field-value a:hover{color:var(--gold-300)}
+.contribution-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(28px,1fr));gap:4px;margin-top:6px}
+.contrib-dot{aspect-ratio:1;border-radius:4px;background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;
+  font-size:.55rem;color:var(--ink-500)}
+.contrib-dot.paid{background:rgba(46,204,113,.25);border-color:rgba(46,204,113,.5);color:#6fe0a0}
+/* TOAST */
+.toast-message{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:rgba(10,54,51,.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  padding:14px 26px;border-radius:var(--radius-md);color:#fff;font-size:.86rem;font-weight:500;
+  z-index:2100;display:none;border:1px solid rgba(212,175,55,.3);border-left:3px solid var(--gold-400);
+  white-space:nowrap;box-shadow:0 15px 40px rgba(0,0,0,.5);opacity:0;
+  transition:opacity .3s ease,transform .3s ease}
+.toast-message.show{display:block;opacity:1;transform:translateX(-50%) translateY(0)}
+/* RESPONSIVE */
+@media (max-width:760px){
+  body{padding:14px 8px}
+  .hero-header{padding:26px 18px 20px}
+  .hero-header h1{font-size:1.35rem}
+  .hero-header p{font-size:.68rem}
+  .toolbar,.stats-bar{padding-left:18px;padding-right:18px}
+  .table-wrap{padding:14px 18px 22px}
+  .filter-select{min-width:100%}
+  table{font-size:.78rem}
+  thead th,tbody td{padding:10px 8px}
+  thead th:nth-child(4),tbody td:nth-child(4),
+  thead th:nth-child(5),tbody td:nth-child(5){display:none}
+  .detail-body{padding:18px 18px 22px}
+  .detail-header{padding:24px 18px 18px}
+  .field{flex-direction:column;gap:2px;align-items:flex-start}
+  .field-value{text-align:left;width:100%}
+  .field-label{min-width:0;font-size:.75rem}
+  .toast-message{white-space:normal;text-align:center;max-width:92%;font-size:.8rem}
+  .detail-card{max-height:none}
+  .detail-body{max-height:none}
+}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(212,175,55,.35);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:rgba(212,175,55,.55)}
+</style>
+</head>
+<body>
 
+<div class="glass-container">
+  <div class="hero-header">
+    <div class="logo-container">
+      <div class="logo-frame">
+        <img src="https://i.postimg.cc/NFkWpkgk/IMG-2371.jpg" alt="Logo ANSAR">
+      </div>
+    </div>
+    <h1>ANSAR — Registre</h1>
+    <div class="brand-rule"></div>
+    <p><i class="fas fa-book-open"></i> Consultation des membres inscrits dans la base de donnees</p>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input type="search" id="searchInput" placeholder="Rechercher par nom, prénom, code, téléphone, email...">
+    </div>
+    <div class="filter-select">
+      <select id="statusFilter">
+        <option value="all">Tous les statuts</option>
+        <option value="actif">Actifs</option>
+        <option value="inactif">Inactifs</option>
+      </select>
+    </div>
+    <div class="filter-select">
+      <select id="sortFilter">
+        <option value="code-asc">Tri : Code (croissant)</option>
+        <option value="code-desc">Tri : Code (décroissant)</option>
+        <option value="name-asc">Tri : Nom (A→Z)</option>
+        <option value="name-desc">Tri : Nom (Z→A)</option>
+        <option value="recent">Tri : Plus récents</option>
+        <option value="old">Tri : Plus anciens</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="stats-bar">
+    <span><i class="fas fa-users"></i> Total : <strong id="statTotal">0</strong></span>
+    <span><i class="fas fa-user-check"></i> Actifs : <strong id="statActive">0</strong></span>
+    <span><i class="fas fa-filter"></i> Affichés : <strong id="statShown">0</strong></span>
+  </div>
+
+  <div class="table-wrap" id="tableWrap">
+    <div class="loader" id="loader"><i class="fas fa-circle-notch"></i><div>Chargement des membres...</div></div>
+  </div>
+</div>
+
+<!-- MODAL DETAIL -->
+<div id="detailModal" class="modal-overlay">
+  <div class="detail-card">
+    <div class="detail-header">
+      <button class="detail-close" id="btnCloseDetail"><i class="fas fa-times"></i></button>
+      <div class="detail-avatar" id="detailAvatar">?</div>
+      <h2 id="detailName">—</h2>
+      <div class="code-pill" id="detailCode">Code —</div>
+    </div>
+    <div class="detail-body" id="detailBody"></div>
+  </div>
+</div>
+
+<div id="toastMsg" class="toast-message"><span id="toastText"></span></div>
+
+<script>
+/* ================= FIREBASE ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyA-TpblN0YnekG2tKFRhjOwwEd80qke5pk",
+  authDomain: "ansar-69617.firebaseapp.com",
+  projectId: "ansar-69617",
+  storageBucket: "ansar-69617.firebasestorage.app",
+  messagingSenderId: "1075104578958",
+  appId: "1:1075104578958:web:b5d55c76def4d1d430b8df"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+auth.signInAnonymously().catch(err => console.warn(err));
+
+/* ================= STATE ================= */
+let allMembers = [];
+let filteredMembers = [];
+
+/* ================= TOAST ================= */
+function showToast(msg, duration = 3000) {
+  const toast = document.getElementById('toastMsg');
+  document.getElementById('toastText').innerText = msg;
+  toast.style.display = "block";
+  void toast.offsetWidth;
+  toast.classList.add('show');
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => { toast.style.display = "none"; }, 300);
+  }, duration);
+}
+
+/* ================= UTILS DATE ================= */
+const MONTHS_FR = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+
+function formatDate8(d) {
+  if (!d || typeof d !== 'string' || d.length !== 8) return "—";
+  const day = d.substring(0,2), month = d.substring(2,4), year = d.substring(4,8);
+  const mi = parseInt(month,10) - 1;
+  if (mi < 0 || mi > 11) return d;
+  return `${parseInt(day,10)} ${MONTHS_FR[mi]} ${year}`;
+}
+
+function formatDate8Short(d) {
+  if (!d || typeof d !== 'string' || d.length !== 8) return "—";
+  const day = d.substring(0,2), month = d.substring(2,4), year = d.substring(4,8);
+  const mi = parseInt(month,10) - 1;
+  if (mi < 0 || mi > 11) return d;
+  return `${day}/${month}/${year}`;
+}
+
+function formatTimestamp(ts) {
+  if (!ts) return "—";
+  try {
+    const date = ts.toDate ? ts.toDate() : new Date(ts);
+    if (isNaN(date.getTime())) return "—";
+    const d = String(date.getDate()).padStart(2,'0');
+    const m = String(date.getMonth()+1).padStart(2,'0');
+    const y = date.getFullYear();
+    const h = String(date.getHours()).padStart(2,'0');
+    const min = String(date.getMinutes()).padStart(2,'0');
+    return `${d}/${m}/${y} à ${h}:${min}`;
+  } catch(e) { return "—"; }
+}
+
+/* ================= CHARGEMENT ================= */
+async function loadMembers() {
+  const wrap = document.getElementById('tableWrap');
+  try {
+    const snapshot = await db.collection('members').get();
+    allMembers = [];
+    snapshot.forEach(doc => {
+      allMembers.push({ id: doc.id, ...doc.data() });
+    });
+    // tri par défaut : code asc
+    allMembers.sort((a,b) => {
+      const ca = parseInt(a.code) || 99999;
+      const cb = parseInt(b.code) || 99999;
+      return ca - cb;
+    });
+    document.getElementById('statTotal').innerText = allMembers.length;
+    document.getElementById('statActive').innerText =
+      allMembers.filter(m => (m.status || '').toLowerCase() === 'actif').length;
+    applyFilters();
+  } catch(err) {
+    console.error("Erreur chargement:", err);
+    wrap.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i>
+      <p>Impossible de charger les membres.<br><small>${err.message || ''}</small></p></div>`;
+    showToast("Erreur de chargement", 3500);
+  }
+}
+
+/* ================= FILTRAGE / TRI ================= */
+function applyFilters() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const status = document.getElementById('statusFilter').value;
+  const sort = document.getElementById('sortFilter').value;
+
+  filteredMembers = allMembers.filter(m => {
+    // filtre statut
+    if (status !== 'all') {
+      const s = (m.status || '').toLowerCase();
+      if (s !== status) return false;
+    }
+    // recherche multi-champs
+    if (!q) return true;
+    const haystack = [
+      m.code, m.firstname, m.lastname, m.email, m.phone,
+      m.country, m.address, m.activity, m.profession,
+      m.birthplace, m.residence, m.educationLevel, m.workSector,
+      formatDate8Short(m.dob), formatDate8Short(m.entryDate), formatDate8Short(m.ansarJoinDate)
+    ].filter(Boolean).join(' ').toLowerCase();
+    return haystack.includes(q);
+  });
+
+  // tri
+  filteredMembers.sort((a,b) => {
+    switch(sort) {
+      case 'code-asc':   return (parseInt(a.code)||99999) - (parseInt(b.code)||99999);
+      case 'code-desc':  return (parseInt(b.code)||0) - (parseInt(a.code)||0);
+      case 'name-asc':   return ((a.lastname||'')+(a.firstname||'')).localeCompare(((b.lastname||'')+(b.firstname||'')));
+      case 'name-desc':  return ((b.lastname||'')+(b.firstname||'')).localeCompare(((a.lastname||'')+(a.firstname||'')));
+      case 'recent':     return tsToMs(b.createdAt) - tsToMs(a.createdAt);
+      case 'old':        return tsToMs(a.createdAt) - tsToMs(b.createdAt);
+      default:           return 0;
+    }
+  });
+
+  document.getElementById('statShown').innerText = filteredMembers.length;
+  renderTable();
+}
+
+function tsToMs(ts) {
+  if (!ts) return 0;
+  try { return ts.toDate ? ts.toDate().getTime() : new Date(ts).getTime(); } catch(e) { return 0; }
+}
+
+/* ================= RENDU TABLE ================= */
+function renderTable() {
+  const wrap = document.getElementById('tableWrap');
+  if (filteredMembers.length === 0) {
+    wrap.innerHTML = `<div class="empty-state"><i class="fas fa-user-slash"></i>
+      <p>Aucun membre ne correspond à votre recherche.</p></div>`;
+    return;
+  }
+
+  const rows = filteredMembers.map((m, idx) => {
+    const status = (m.status || 'actif').toLowerCase();
+    const statusLabel = status === 'actif' ? 'Actif' : (status === 'inactif' ? 'Inactif' : m.status || '—');
+    const statusClass = status === 'actif' ? 'badge-active' : 'badge-inactive';
+    const isHafiz = m.isHafiz === true;
+    return `
+      <tr data-idx="${idx}">
+        <td>${m.code || '—'}</td>
+        <td>
+          <div class="member-name">${escapeHtml((m.firstname||'') + ' ' + (m.lastname||''))}
+            <small>${escapeHtml(m.profession || m.activity || '—')}</small>
+          </div>
+        </td>
+        <td>${escapeHtml(m.phone || '—')}</td>
+        <td>${escapeHtml(m.country || '—')}</td>
+        <td>${formatDate8Short(m.dob)}</td>
+        <td>
+          <span class="badge ${statusClass}">${statusLabel}</span>
+          ${isHafiz ? '<span class="badge badge-hafiz" style="margin-left:6px;">Hafiz</span>' : ''}
+        </td>
+        <td><i class="fas fa-chevron-right view-icon"></i></td>
+      </tr>
+    `;
+  }).join('');
+
+  wrap.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Membre</th>
+          <th>Téléphone</th>
+          <th>Pays</th>
+          <th>Naissance</th>
+          <th>Statut</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+
+  // attacher les clics
+  wrap.querySelectorAll('tbody tr').forEach(tr => {
+    tr.addEventListener('click', () => {
+      const idx = parseInt(tr.dataset.idx, 10);
+      openDetail(filteredMembers[idx]);
+    });
+  });
+}
+
+function escapeHtml(s) {
+  if (s === null || s === undefined) return '';
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+/* ================= FICHE DÉTAIL ================= */
+function openDetail(m) {
+  if (!m) return;
+
+  // Avatar initiales
+  const initials = ((m.firstname||'?')[0] + (m.lastname||'?')[0]).toUpperCase();
+  document.getElementById('detailAvatar').textContent = initials || '?';
+  document.getElementById('detailName').textContent =
+    (m.firstname || '') + ' ' + (m.lastname || '');
+  document.getElementById('detailCode').textContent = 'Code : ' + (m.code || '—');
+
+  // Sections
+  const body = document.getElementById('detailBody');
+  const status = (m.status || 'actif').toLowerCase();
+  const statusLabel = status === 'actif' ? 'Actif' : (status === 'inactif' ? 'Inactif' : m.status || '—');
+  const statusClass = status === 'actif' ? 'badge-active' : 'badge-inactive';
+
+  // Contributions : reconstruire une grille simple
+  let contributionsHtml = '';
+  if (m.contributions && m.contributions.Mensuelle) {
+    const years = Object.keys(m.contributions.Mensuelle).sort();
+    years.forEach(y => {
+      const months = m.contributions.Mensuelle[y] || [];
+      const dots = months.map((paid, i) => {
+        const paidCls = paid ? 'paid' : '';
+        const letter = ['J','F','M','A','M','J','J','A','S','O','N','D'][i];
+        return `<div class="contrib-dot ${paidCls}" title="${MONTHS_FR[i]} ${y}">${letter}</div>`;
+      }).join('');
+      contributionsHtml += `
+        <div style="margin-bottom:10px;">
+          <div style="font-size:.75rem;color:var(--gold-300);margin-bottom:5px;">Année ${y}</div>
+          <div class="contribution-grid">${dots}</div>
+        </div>
+      `;
+    });
+  } else {
+    contributionsHtml = '<div class="field-value empty">Aucune contribution enregistrée</div>';
+  }
+
+  const f = (label, val) => {
+    const isEmpty = val === null || val === undefined || val === '' || val === '—';
+    return `<div class="field">
+      <div class="field-label">${label}</div>
+      <div class="field-value ${isEmpty?'empty':''}">${isEmpty ? 'Non renseigné' : escapeHtml(val)}</div>
+    </div>`;
+  };
+  const fLink = (label, val, href) => {
+    const isEmpty = val === null || val === undefined || val === '' || val === '—';
+    if (isEmpty) return f(label, val);
+    return `<div class="field">
+      <div class="field-label">${label}</div>
+      <div class="field-value"><a href="${href}" target="_blank" rel="noopener">${escapeHtml(val)}</a></div>
+    </div>`;
+  };
+  const fBadge = (label, text, cls) => {
+    if (!text || text === '—') return f(label, text);
+    return `<div class="field">
+      <div class="field-label">${label}</div>
+      <div class="field-value"><span class="badge ${cls}">${escapeHtml(text)}</span></div>
+    </div>`;
+  };
+  const fBool = (label, val) => {
+    const yes = val === true || val === 'oui' || val === 'Oui';
+    return `<div class="field">
+      <div class="field-label">${label}</div>
+      <div class="field-value"><span class="badge ${yes?'badge-active':'badge-inactive'}">${yes?'Oui':'Non'}</span></div>
+    </div>`;
+  };
+
+  const html = `
+    <div class="section">
+      <div class="section-title"><i class="fas fa-user-circle"></i> Informations personnelles</div>
+      ${f('Prénom', m.firstname)}
+      ${f('Nom', m.lastname)}
+      ${f('Date de naissance', formatDate8(m.dob))}
+      ${f('Âge', m.age !== null && m.age !== undefined ? m.age + ' ans' : '—')}
+      ${f('Téléphone', m.phone)}
+      ${fLink('Email', m.email, 'mailto:'+ (m.email||''))}
+      ${f('Pays / Région', m.country)}
+      ${f('Adresse', m.address)}
+      ${f('Lieu de naissance', m.birthplace)}
+      ${f('Numéro CIN', m.residence)}
+    </div>
+
+    <div class="section">
+      <div class="section-title"><i class="fas fa-graduation-cap"></i> Parcours à l'Institut Al-Mouyassar</div>
+      ${f("Date d'entrée à l'institut", formatDate8(m.entryDate))}
+      ${f("Années passées à l'institut", m.yearsAtInstitute)}
+      ${fBool('Hafiz du Saint Coran', m.isHafiz)}
+      ${f('Année de mémorisation', m.hafizYear)}
+    </div>
+
+    <div class="section">
+      <div class="section-title"><i class="fas fa-handshake"></i> Engagement associatif</div>
+      ${f("Date d'intégration Ansar", formatDate8(m.ansarJoinDate))}
+      ${fBool('Responsabilité au sein de l\'association', m.hasResponsibility)}
+      ${f('Détails de la responsabilité', m.responsibilityDetails)}
+      ${f('Disponibilité', m.availability)}
+    </div>
+
+    <div class="section">
+      <div class="section-title"><i class="fas fa-briefcase"></i> Parcours académique & professionnel</div>
+      ${f("Niveau d'études", m.educationLevel)}
+      ${fBool('En activité professionnelle', m.isWorking)}
+      ${f("Secteur d'activité", m.workSector)}
+      ${f('Profession / Spécialité', m.profession)}
+    </div>
+
+    <div class="section">
+      <div class="section-title"><i class="fas fa-comment-dots"></i> Perception sur l'association</div>
+      ${f('Langue de la perception', m.perceptionLanguage)}
+      <div class="field">
+        <div class="field-label">Témoignage</div>
+        <div class="field-value ${!m.perceptionText?'empty':''}" style="text-align:left;">${m.perceptionText ? escapeHtml(m.perceptionText) : 'Non renseigné'}</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title"><i class="fas fa-coins"></i> Contributions</div>
+      ${contributionsHtml}
+    </div>
+
+    <div class="section">
+      <div class="section-title"><i class="fas fa-info-circle"></i> Statut du membre</div>
+      ${fBadge('Statut', statusLabel, statusClass)}
+      ${fBadge('Rôle', m.role || 'membre', 'badge-role')}
+      ${f("Date d'inscription", formatTimestamp(m.createdAt))}
+      ${f('Identifiant interne', m.id)}
+    </div>
+  `;
+
+  body.innerHTML = html;
+  document.getElementById('detailModal').classList.add('active');
+}
+
+/* ================= ÉVÉNEMENTS ================= */
+document.getElementById('searchInput').addEventListener('input', applyFilters);
+document.getElementById('statusFilter').addEventListener('change', applyFilters);
+document.getElementById('sortFilter').addEventListener('change', applyFilters);
+
+document.getElementById('btnCloseDetail').onclick = () => {
+  document.getElementById('detailModal').classList.remove('active');
+};
+document.getElementById('detailModal').addEventListener('click', (e) => {
+  if (e.target.id === 'detailModal') {
+    document.getElementById('detailModal').classList.remove('active');
+  }
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    document.getElementById('detailModal').classList.remove('active');
+  }
+});
+
+/* ================= INIT ================= */
+loadMembers();
+console.log("✅ Registre des membres chargé - Lecture seule");
+</script>
+</body>
+  </html>
