@@ -280,7 +280,7 @@ body{
               <select id="dobMonth" required><option value="">Mois</option></select>
               <select id="dobYear" required><option value="">Année</option></select>
             </div>
-            <div class="date-hint" id="dobHint"><i class="fas fa-info-circle"></i> Format enregistré : JJMMAAAA (8 chiffres)</div>
+            <div class="date-hint" id="dobHint"><i class="fas fa-info-circle"></i>ENTREZ VOTRE DATE DE NAISSANCE EXACTE</div>
             <input type="hidden" id="dob" required>
           </div>
           <div class="form-group">
@@ -289,12 +289,7 @@ body{
               <input type="text" id="birthplace" placeholder="Ville de naissance">
             </div>
           </div>
-          <div class="form-group">
-            <label for="residence">Numéro CIN</label>
-            <div class="input-wrap"><i class="fas fa-id-card"></i>
-              <input type="text" id="residence" placeholder="Numéro carte d'identité">
-            </div>
-          </div>
+           
         </div>
       </div>
 
@@ -303,15 +298,12 @@ body{
         <h2 class="page-title"><i class="fas fa-graduation-cap"></i> Parcours à l'Institut Al-Mouyassar</h2>
         <p class="page-sub">Votre parcours au sein de l'institut.</p>
         <div class="form-grid">
-          <div class="form-group full">
-            <label>Date d'entrée à l'institut *</label>
-            <div class="date-selects">
-              <select id="entryDay" required><option value="">Jour</option></select>
-              <select id="entryMonth" required><option value="">Mois</option></select>
-              <select id="entryYear" required><option value="">Année</option></select>
+                           <div class="form-group full">
+            <label for="entryYear">Année d'entrée à l'institut *</label>
+            <div class="input-wrap"><i class="fas fa-calendar-alt"></i>
+              <input type="number" id="entryYear" min="1950" max="2100" placeholder="Ex: 2018" required>
             </div>
-            <div class="date-hint"><i class="fas fa-info-circle"></i> Format enregistré : JJMMAAAA</div>
-            <input type="hidden" id="entryDate" required>
+            <div class="date-hint"><i class="fas fa-info-circle"></i> Entrez uniquement l'année</div>
           </div>
           <div class="form-group full">
             <label for="yearsAtInstitute">Combien d'années avez-vous passées à l'institut ? *</label>
@@ -340,15 +332,12 @@ body{
         <h2 class="page-title"><i class="fas fa-handshake"></i> Engagement associatif</h2>
         <p class="page-sub">Votre implication au sein d'ANSAR.</p>
         <div class="form-grid">
-          <div class="form-group full">
-            <label>Date d'intégration Ansar *</label>
-            <div class="date-selects">
-              <select id="ansarDay" required><option value="">Jour</option></select>
-              <select id="ansarMonth" required><option value="">Mois</option></select>
-              <select id="ansarYear" required><option value="">Année</option></select>
+                                    <div class="form-group full">
+            <label for="ansarJoinYear">Année d'intégration Ansar *</label>
+            <div class="input-wrap"><i class="fas fa-calendar-check"></i>
+              <input type="number" id="ansarJoinYear" min="1950" max="2100" placeholder="Ex: 2020" required>
             </div>
-            <div class="date-hint"><i class="fas fa-info-circle"></i> Format enregistré : JJMMAAAA</div>
-            <input type="hidden" id="ansarJoinDate" required>
+            <div class="date-hint"><i class="fas fa-info-circle"></i> Entrez uniquement l'année (4 chiffres)</div>
           </div>
           <div class="form-group full">
             <label>Occupez-vous actuellement une responsabilité au sein de l'association ? *</label>
@@ -460,7 +449,7 @@ body{
       </div>
     </form>
 
-    <div class="info-text"><i class="fas fa-lock"></i> Prénom, Nom, Téléphone, Pays, Date de naissance et parcours sont obligatoires</div>
+    <div class="info-text"><i class="fas fa-lock"></i>ANSAR ALMOUYASSAR TOUT DROITS RESERVEES</div>
   </div>
 </div>
 
@@ -546,8 +535,6 @@ function buildDate8(dayId, monthId, yearId, hiddenId) {
 
 /* ============ INIT DATE SELECTS ============ */
 fillDateSelects('dobDay','dobMonth','dobYear');
-fillDateSelects('entryDay','entryMonth','entryYear');
-fillDateSelects('ansarDay','ansarMonth','ansarYear');
 
 /* ============ MULTI-STEP NAV ============ */
 let currentPage = 1;
@@ -593,9 +580,10 @@ function validatePage(n) {
     const phone = document.getElementById('phone').value.trim();
     if (!phone) { ok = false; msg = "Téléphone requis."; }
   }
-  if (n === 2) {
-    const entry = buildDate8('entryDay','entryMonth','entryYear','entryDate');
-    if (!entry || entry === "INVALID") { ok = false; msg = "Date d'entrée à l'institut invalide."; }
+       if (n === 2) {
+        const entry = document.getElementById('entryYear').value.trim();
+    if (!entry) { ok = false; msg = "Année d'entrée à l'institut requise."; }
+    else if (entry.length !== 4 || isNaN(entry)) { ok = false; msg = "Entrez une année valide (4 chiffres)."; }
     const isHafiz = document.querySelector('input[name="isHafiz"]:checked');
     if (!isHafiz) { ok = false; msg = "Indiquez si vous êtes Hafiz."; }
     if (isHafiz && isHafiz.value === 'oui') {
@@ -603,9 +591,10 @@ function validatePage(n) {
       if (!hy) { ok = false; msg = "Année de mémorisation requise."; }
     }
   }
-  if (n === 3) {
-    const ansar = buildDate8('ansarDay','ansarMonth','ansarYear','ansarJoinDate');
-    if (!ansar || ansar === "INVALID") { ok = false; msg = "Date d'intégration Ansar invalide."; }
+    if (n === 3) {
+    const ansar = document.getElementById('ansarJoinYear').value.trim();
+    if (!ansar) { ok = false; msg = "Année d'intégration Ansar requise."; }
+    else if (ansar.length !== 4 || isNaN(ansar)) { ok = false; msg = "Entrez une année valide (4 chiffres)."; }
     const hasResp = document.querySelector('input[name="hasResponsibility"]:checked');
     if (!hasResp) { ok = false; msg = "Indiquez si vous avez une responsabilité."; }
     if (!document.getElementById('availability').value) { ok = false; msg = "Disponibilité requise."; }
@@ -621,10 +610,8 @@ function validatePage(n) {
 
 document.getElementById('btnNext').addEventListener('click', () => {
   if (validatePage(currentPage)) {
-    // synchronise les dates hidden
+    // synchronise la date de naissance (hidden)
     buildDate8('dobDay','dobMonth','dobYear','dob');
-    buildDate8('entryDay','entryMonth','entryYear','entryDate');
-    buildDate8('ansarDay','ansarMonth','ansarYear','ansarJoinDate');
     showPage(currentPage + 1);
   }
 });
@@ -881,11 +868,10 @@ document.getElementById('inscriptionForm').addEventListener('submit', async (e) 
   const country   = document.getElementById('country').value.trim();
   const address   = document.getElementById('address').value.trim();
 
-  const entryDate = buildDate8('entryDay','entryMonth','entryYear','entryDate');
-  const ansarJoinDate = buildDate8('ansarDay','ansarMonth','ansarYear','ansarJoinDate');
+   const entryDate = document.getElementById('entryYear').value.trim(); // année seule (ex: 2018)
+  const ansarJoinDate = document.getElementById('ansarJoinYear').value.trim(); // année seule (ex: 2020)
     const birthplace = document.getElementById('birthplace').value.trim();
-  const residence  = document.getElementById('residence').value.trim();
-
+  const residence  = null; // Champ CIN supprimé
   const isHafizEl = document.querySelector('input[name="isHafiz"]:checked');
   const hasRespEl = document.querySelector('input[name="hasResponsibility"]:checked');
   const isWorkingEl = document.querySelector('input[name="isWorking"]:checked');
